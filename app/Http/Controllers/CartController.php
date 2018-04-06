@@ -31,6 +31,9 @@ class CartController extends Controller
         $order = $user->orders()->InCart()->Order()->first();
         $backorder = $user->orders()->InCart()->BackOrder()->first();
         $preorder = $user->orders()->InCart()->PreOrder()->first();
+        $rejectedOrder = $user->orders()->RejectedOrder()->Order()->first();
+        $rejectedBackorder = $user->orders()->RejectedOrder()->BackOrder()->first();
+        $rejectedPreorder = $user->orders()->RejectedOrder()->Preorder()->first();
         if (!empty($order))
         {
             $order_products = $order->orderProducts()->get();
@@ -53,6 +56,27 @@ class CartController extends Controller
             $preorders =[];
             $preorder = null;
         }
+        if (!empty($rejectedOrder))
+        {
+            $rejectedOrders = $rejectedOrder->orderProducts()->get();
+        }else{
+            $rejectedOrders =[];
+            $rejectedOrder = null;
+        }
+        if (!empty($rejectedBackorder))
+        {
+            $rejectedBackorders = $rejectedBackorder->orderProducts()->get();
+        }else{
+            $rejectedBackorders =[];
+            $rejectedBackorder = null;
+        }
+        if (!empty($rejectedPreorder))
+        {
+            $rejectedPreorders = $rejectedPreorder->orderProducts()->get();
+        }else{
+            $rejectedPreorders =[];
+            $rejectedPreorder = null;
+        }
 
         return view('orders.single_basket', [
             'products' => $order_products,
@@ -61,6 +85,12 @@ class CartController extends Controller
             'preorder' => $preorder,
             'backorders' => $backorders,
             'preorders' => $preorders,
+            'rejectedPreorders' => $rejectedPreorders,
+            'rejectedBackorders' => $rejectedBackorders,
+            'rejectedOrders' => $rejectedOrders,
+            'rejectedOrder' => $rejectedOrder,
+            'rejectedBackorder' => $rejectedBackorder,
+            'rejectedPreorder' => $rejectedPreorder,
         ]);
     }
 
@@ -149,20 +179,32 @@ class CartController extends Controller
         $backOrder = null;
         $preOrder = null;
         $orderComment = null;
+        $rejectedOrder = null;
         $id = [];
 
-        if ($request->has('order_id')) {
-            $order = Order::findOrFail($request->order_id);
-            $order->update(['status' => Order::UNCONFIRMED]);
-            foreach ($order->orderProducts as $product) {
-                $stock = $product->product->stockamount;
-                $quantity = $stock - $product->quantity;
-                if ($quantity < 0) {
-                    $quantity = 0;
-                }
-                $product->product->stock()->create(['amount' => $quantity]);
+        if ($request->has('order_id') or $request->has('rejectedOrder_id')) {
+            if($request->has('order_id'))
+            {
+                $orders_id[] = $request->order_id;
             }
-            $id[] = $request->order_id;
+            if($request->has('rejectedOrder_id'))
+            {
+                $orders_id[] = $request->rejectedOrder_id;
+            }
+            for ($i = 0; count($orders_id) > $i ; $i++)
+            {
+                $order = Order::findOrFail($orders_id[$i]);
+                $order->update(['status' => Order::UNCONFIRMED]);
+                foreach ($order->orderProducts as $product) {
+                    $stock = $product->product->stockamount;
+                    $quantity = $stock - $product->quantity;
+                    if ($quantity < 0) {
+                        $quantity = 0;
+                    }
+                    $product->product->stock()->create(['amount' => $quantity]);
+                }
+                $id[] = $request->order_id;
+            }
         }
 
         if ($request->has('backorder_id')) {

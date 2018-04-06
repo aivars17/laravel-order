@@ -67,6 +67,11 @@ class Order extends Model
         return $query->where('status', Order::UNCONFIRMED);
 	}
 
+    public function scopeRejectedOrder($query)
+    {
+        return $query->where('status', Order::REJECTED);
+    }
+
     public function chat()
     {
         return $this->hasOne(Chat::class);

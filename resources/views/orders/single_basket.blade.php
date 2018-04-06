@@ -3,6 +3,55 @@
 @inject('cartService', "App\Services\CartService")
 <div class="col-10 mt-5">
 		<!-- Order table -->
+	@if(!empty($rejectedOrders))
+		<div class="row">
+			<div class="col-md-12 table-responsive">
+				<h3>Rejected Order</h3>
+				<table class="table table-sm">
+					<thead class="thead-light">
+					<tr>
+						<th scope="col">EAN:</th>
+						<th scope="col">Platform:</th>
+						<th scope="col">Name:</th>
+						<th scope="col">Release date:</th>
+						<th scope="col">Publisher:</th>
+						<th scope="col">Price:</th>
+						<th scope="col">Price Total:</th>
+						<th scope="col">Quantity</th>
+						<th scope="col"></th>
+					</tr>
+					</thead>
+					<tbody>
+					@foreach($rejectedOrders as $rejectedOrderProduct)
+						<tr>
+							<td data-label="EAN:" class="align-middle text-right text-lg-center">{{ $rejectedOrderProduct->product->ean }}</td>
+							<td data-label="Platform:" class="align-middle text-right text-lg-center">{{ $rejectedOrderProduct->product->platform->name }}</td>
+							<td data-label="Name:" class="align-middle text-right text-lg-center">{{ $rejectedOrderProduct->product->name }}</td>
+							<td data-label="Release date:" class="align-middle text-right text-lg-center">{{ $rejectedOrderProduct->product->release_date }}</td>
+							<td data-label="Publisher:" class="align-middle text-right text-lg-center">{{ !empty($rejectedOrderProduct->product->publisher) ? $rejectedOrderProduct->product->publisher->name : '' }}</td>
+							<td data-label="Price:" class="align-middle text-right text-lg-center">{{ number_format($rejectedOrderProduct->product->PriceAmount, 2, '.', '') }} €</td>
+							<td id="singlePrice{{ $rejectedOrderProduct->id }}" data-label="Price:" class="align-middle text-right text-lg-center">{{ number_format($cartService->getSingleProductPrice($rejectedOrderProduct), 2, '.', '') }} €</td>
+							<td data-label="Quantity:" class="align-middle text-right text-lg-center">
+								<input data-url="{{ route('order.update',$rejectedOrderProduct->id) }}" class="input setquantity text-right" type="number" name="amount" value="{{ $rejectedOrderProduct->quantity }}" min="1">
+								<br>
+								<span id="message{{ $rejectedOrderProduct->id }}" ></span>
+							</td>
+							<td class="align-middle text-right text-lg-center">
+								<button class="btn btn-danger btn-sm delete" data-html="{{ route('order.index') }}" data-url="{{ route('order.product.delete', $rejectedOrderProduct->id) }}">Delete</button>
+							</td>
+						</tr>
+					@endforeach
+					<tr>
+						<td scope="total" colspan="6" class="text-right"><b>Total</b></td>
+						<td class="align-middle text-right text-lg-center totalPrice" rowspan="6" data-label="Total">{{ !empty($rejectedOrders) ? $cartService->getTotalCartPrice($rejectedOrder) : ''}} €</td>
+						<td class="align-middle text-right text-lg-center totalQuantity" data-label="Total quantity">{{ !empty($rejectedOrders) ? $cartService->getTotalCartQuantity($rejectedOrder) : '' }}</td>
+						<td scope="total"></td>
+					</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	@endif
 		@if(!empty($products))
 		<div class="row">
 			<div class="col-md-12 table-responsive">
@@ -160,7 +209,10 @@
 			@if(!empty($preorder))
 			<input type="hidden" name="preorder_id" value="{{$preorder->id}}">
 			@endif
-			@if(!empty($product) || !empty($backorder) || !empty($preorder))
+			@if(!empty($rejectedOrder))
+				<input type="hidden" name="$rejectedOrder_id" value="{{$rejectedOrder->id}}">
+			@endif
+			@if(!empty($product) || !empty($backorder) || !empty($preorder) || !empty($rejectedOrder))
 			<div class="row mb-2">
 				<div class="col-12">
 					<a class="btn btn-dark btn-block" href="{{ route('home') }}">Back to Shop</a>
@@ -172,7 +224,7 @@
 			@endif
 		</div>
 	<!-- Comments and attachments -->
-	@if(!empty($order) || !empty($backorder) || !empty($preorder))
+	@if(!empty($order) || !empty($backorder) || !empty($preorder) || !empty($rejectedOrder))
 	<div class="row">
 		<div class="col-12 mt-2">
 			<form action="{{ route('cart.confirm') }}" method="post">
@@ -189,6 +241,9 @@
 				@endif
 				@if(!empty($preorder))
 				<input type="hidden" name="preorder_id" value="{{$preorder->id}}">
+				@endif
+				@if(!empty($rejectedOrder))
+					<input type="hidden" name="rejectedOrder_id" value="{{$rejectedOrder->id}}">
 				@endif
 				<div class="form-group">
 					<button type="submit" class="btn btn-danger btn-block" >Confirm your order</button>
