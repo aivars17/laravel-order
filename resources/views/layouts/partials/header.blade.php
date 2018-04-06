@@ -17,7 +17,7 @@
 </div>
 <!-- Header -->
 <div class="row">
-    <div class="logo">
+    <div class="logo pl-2">
        <a href="{{ route('home') }}"><img src="{{asset('images/logo2.png')}}"></a>
    </div>
    <div class="cart-menu-mobile">
@@ -57,7 +57,7 @@
                 <span class="cart-menu-icon">
                     <i class="fa fa-cart-arrow-down"></i>
                 </span>
-                <span class="cart-menu-price totalQuantityTop">Items: {{ $cartService->getUserOrderTotalQuantity()}}</span>
+                <span class="cart-menu-price totalQuantityTop">Items: {{ $cartService->getUserOrderTotalQuantity()}} / </span>
                 <span class="cart-menu-price totalPriceTop">  € {{ number_format($cartService->getUserOrderTotalPrice(), 2, '.', '') }}</span>
     </a>
 </div>
